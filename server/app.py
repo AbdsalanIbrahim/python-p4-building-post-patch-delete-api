@@ -21,28 +21,26 @@ def index():
 
 @app.route('/games')
 def games():
+    games = [game.to_dict() for game in Game.query.all()]
+    
+    if not games:
+        return make_response(
+            {"message": "No games available"},
+            404
+        )
 
-    games = []
-    for game in Game.query.all():
-        game_dict = {
-            "title": game.title,
-            "genre": game.genre,
-            "platform": game.platform,
-            "price": game.price,
-        }
-        games.append(game_dict)
-
-    response = make_response(
-        games,
-        200
-    )
-
-    return response
+    return make_response(games, 200)
 
 @app.route('/games/<int:id>')
 def game_by_id(id):
     game = Game.query.filter(Game.id == id).first()
     
+    if not game:
+        return make_response(
+            {"error": "Game not found"}, 
+            404
+        )
+
     game_dict = game.to_dict()
 
     response = make_response(
@@ -54,33 +52,35 @@ def game_by_id(id):
 
 @app.route('/reviews')
 def reviews():
+    reviews = [review.to_dict() for review in Review.query.all()]
+    
+    if not reviews:
+        return make_response(
+            {"message": "No reviews available"},
+            404
+        )
 
-    reviews = []
-    for review in Review.query.all():
-        review_dict = review.to_dict()
-        reviews.append(review_dict)
-
-    response = make_response(
-        reviews,
-        200
-    )
-
-    return response
+    return make_response(reviews, 200)
 
 @app.route('/users')
 def users():
+    users = [user.to_dict() for user in User.query.all()]
+    
+    if not users:
+        return make_response(
+            {"message": "No users available"},
+            404
+        )
 
-    users = []
-    for user in User.query.all():
-        user_dict = user.to_dict()
-        users.append(user_dict)
+    return make_response(users, 200)
 
-    response = make_response(
-        users,
-        200
-    )
+@app.errorhandler(404)
+def not_found(error):
+    return make_response({"error": "Resource not found"}, 404)
 
-    return response
+@app.errorhandler(500)
+def internal_error(error):
+    return make_response({"error": "Internal server error"}, 500)
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
